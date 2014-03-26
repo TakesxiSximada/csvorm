@@ -1,0 +1,16 @@
+syntax: regexp
+.*~$
+.*\#$
+.*\.db$
+.*\.log$
+.*\.pyc$
+.*\.orig$
+.*\.bmp$
+^@.*
+^\..*
+
+syntax: glob
+examples/doc/*
+*.egg-info/*
+dist/*
+
