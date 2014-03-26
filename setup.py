@@ -1,12 +1,18 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1.0'
+version = '0.1.1'
+long_description = 'This allows to use the CSV as ORM'
+try:
+    with open('README') as fp:
+        long_description = fp.read()
+except:
+    pass
 
 setup(name='csvorm',
       version=version,
       description="orm for csv",
-      long_description="""This allows to use the CSV as ORM""",
+      long_description=long_description,
       classifiers=[
           'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: BSD License',
