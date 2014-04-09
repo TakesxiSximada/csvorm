@@ -1,16 +1,17 @@
 csvorm - ORM for CSV
+===============================
 
 This allows to use the CSV as ORM.
 
-Install
-==========
+INSTALL
+-----------------
 
 ::
 
     pip install csvorm
 
-How to use it
-==============
+HOW TO USE IT
+-----------------------
 
 layout define::
 
