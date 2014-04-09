@@ -1,7 +1,8 @@
+#-*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1.1'
+version = '0.1.2'
 long_description = 'This allows to use the CSV as ORM'
 try:
     with open('README') as fp:
