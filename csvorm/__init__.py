@@ -10,8 +10,22 @@ except ImportError:
 class Record(object):
     def __init__(self, model):
         self._name_value = collections.OrderedDict(
-            [(name, Value(column))
-             for name, column in model.get_name_column_pairs()])
+            (name, Value(column))
+            for name, column in model.get_name_column_pairs()
+            )
+
+        self._alias_name = collections.OrderedDict(
+            (alias, name)
+            for name, column in model.get_name_column_pairs()
+            for alias in column.aliases
+            )
+
+
+    def alias_to_name(self, alias_or_name):
+        try:
+            return self._alias_name[alias_or_name]
+        except KeyError as err:
+            return alias_or_name
 
     def __getattr__(self, name):
         if hasattr(self, '_name_value') and name in self._name_value:
@@ -19,12 +33,14 @@ class Record(object):
         raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if hasattr(self, '_name_value'):
+        if name == '_alias_name':
+            super(type(self), self).__setattr__(name, value)
+        elif hasattr(self, '_name_value'):
             if name in self._name_value:
                 self._name_value[name].set(value)
             else:
                 msg = self._name_value.keys()
-                raise AttributeError(msg)
+                raise AttributeError('not {} in {}'.format(repr(name), repr(msg)))
         else:
             super(type(self), self).__setattr__(name, value)
 
@@ -39,7 +55,7 @@ class Record(object):
                 self._name_value[name].decode(value)
             else:
                 msg = self._name_value.keys()
-                raise AttributeError(msg)
+                raise AttributeError('not {} in {}'.format(repr(name), repr(msg)))
         else:
             super(type(self), self).__setattr__(name, value)
 
@@ -52,18 +68,22 @@ class Record(object):
                 data = self.__getattr__encode(name)
             else:
                 data = getattr(self, name)
+            name = value.export_name or name
             row[name] = data
         return row
 
     def _load(self, row, decode=False):
         name_value = {}
         if not hasattr(row, 'items'): # no dict
-            for ii, name in enumerate(self._name_value.keys()):
-                name_value[name] = row[ii]
+            name_value = dict(
+                (name_value[name], row[ii])
+                for ii, name in enumerate(self._name_value.keys())
+                )
         else:
             name_value = row
 
         for name, value in name_value.items():
+            name = self.alias_to_name(name)
             if decode:
                 self.__setattr__decode(name, value)
             else:
@@ -90,6 +110,10 @@ class Value(object):
         value = type_.decode(value)
         self.set(value)
 
+    @property
+    def export_name(self):
+        return self._column.export_name
+
 class Column(object):
     _column_index_auto_increment = 0
 
@@ -97,9 +121,11 @@ class Column(object):
         cls._column_index_auto_increment += 1
         return object.__new__(cls, *args, **kwds)
 
-    def __init__(self, type_, *args, **kwds):
+    def __init__(self, type_, aliases=[], export_name=None, *args, **kwds):
         self._column_index = self._column_index_auto_increment
         self.type_ = type_
+        self.aliases = aliases
+        self.export_name = export_name
 
     def __cmp__(self, other):
         return cmp(self._column_index, other._column_index)
@@ -122,6 +148,9 @@ class ModelAdapter(list):
 
     def get_names(self):
         return [name for name, column in self.get_name_column_pairs()]
+
+    def get_header(self):
+        return [column.export_name or name for name, column in self.get_name_column_pairs()]
 
     def get_name_column_pairs(self):
         model = self._model
@@ -155,15 +184,16 @@ class ModelAdapter(list):
 
     def dumps(self):
         fp = stringio.StringIO()
-        names = self.get_names()
-        writer = csv.DictWriter(fp, names)
+        encoding = self._model._encoding_
+        header = map(lambda head: head.encode(encoding), self.get_header())
+        writer = csv.DictWriter(fp, header)
         writer.writeheader()
         for record in self:
             row = record._dump(encode=True)
+            row = dict((key.encode(encoding), value) for key, value in row.items())
             writer.writerow(row)
         fp.seek(0)
         return fp.read()
-
 
     def load(self, path):
         with open(path, 'rb') as fp:
@@ -177,7 +207,9 @@ class ModelAdapter(list):
         fp.seek(0)
         reader = csv.DictReader(fp)
         records = []
+        encoding = self._model._encoding_
         for row in reader:
+            row = dict((key.decode(encoding), value) for key, value in row.items())
             record = self.get_record()
             record._load(row, decode=True)
             records.append(record)
