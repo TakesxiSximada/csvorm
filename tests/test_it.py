@@ -22,7 +22,7 @@ class UsecaseTest(TestCase):
         fp = stringio.StringIO()
         test_csv.dumpfp(fp)
         fp.seek(0)
-        print fp.read()
+        print(fp.read())
         fp.seek(0)
 
         other_csv = TestCSV()
