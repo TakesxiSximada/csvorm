@@ -158,7 +158,7 @@ class ModelAdapter(list):
             name_column = [[name, getattr(model, name)]
                            for name in dir(model)
                            if type(getattr(model, name)) is Column]
-            name_column.sort(key=lambda (name, column): column)
+            name_column.sort(key=lambda name_column: id(name_column[1]))
 
             encoding = self._model._encoding_
             for name, column in name_column:
