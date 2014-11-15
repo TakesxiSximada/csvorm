@@ -34,7 +34,7 @@ except:
 
 setup(
     name='csvorm',
-    version='0.1.2',
+    version='0.1.3',
     url='https://github.com/TakesxiSximada/csvorm',
     download_url='https://github.com/TakesxiSximada/csvorm',
     license='See http://www.python.org/3.4/license.html',
