@@ -1,11 +1,17 @@
-#-*- coding: utf-8 -*-
-import csv
+# -*- coding: utf-8 -*-
+
 import datetime
 import collections
-try:
-    import stringio
-except ImportError:
-    import StringIO as stringio
+import six
+if six.PY3:
+    import io
+    import csv
+else:
+    import StringIO as io
+    import unicodecsv as csv
+
+on_memory_io_factory = io.BytesIO if six.PY3 else io.StringIO
+
 
 class Record(object):
     def __init__(self, model):
@@ -13,27 +19,27 @@ class Record(object):
             (name, Value(column))
             for name, column in model.get_name_column_pairs()
             )
-
         self._alias_name = collections.OrderedDict(
             (alias, name)
             for name, column in model.get_name_column_pairs()
             for alias in column.aliases
             )
 
-
     def alias_to_name(self, alias_or_name):
         try:
             return self._alias_name[alias_or_name]
-        except KeyError as err:
+        except KeyError:
             return alias_or_name
 
     def __getattr__(self, name):
-        if hasattr(self, '_name_value') and name in self._name_value:
+        if name in ('_name_value', '_alias_name'):
+            return getattr(super(type(self), self), name)
+        elif hasattr(self, '_name_value') and name in self._name_value:
             return self._name_value[name].get()
         raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name == '_alias_name':
+        if name in ('_name_value', '_alias_name'):
             super(type(self), self).__setattr__(name, value)
         elif hasattr(self, '_name_value'):
             if name in self._name_value:
@@ -59,7 +65,6 @@ class Record(object):
         else:
             super(type(self), self).__setattr__(name, value)
 
-
     def _dump(self, encode=False):
         row = {}
         for name, value in self._name_value.items():
@@ -74,7 +79,7 @@ class Record(object):
 
     def _load(self, row, decode=False):
         name_value = {}
-        if not hasattr(row, 'items'): # no dict
+        if not hasattr(row, 'items'):  # no dict
             name_value = dict(
                 (name_value[name], row[ii])
                 for ii, name in enumerate(self._name_value.keys())
@@ -84,10 +89,8 @@ class Record(object):
 
         for name, value in name_value.items():
             name = self.alias_to_name(name)
-            if decode:
-                self.__setattr__decode(name, value)
-            else:
-                setattr(self, name, value)
+            self._name_value[name].decode(value)
+
 
 class Value(object):
     def __init__(self, column):
@@ -114,21 +117,21 @@ class Value(object):
     def export_name(self):
         return self._column.export_name
 
+
 class Column(object):
     _column_index_auto_increment = 0
 
     def __new__(cls, *args, **kwds):
         cls._column_index_auto_increment += 1
-        return object.__new__(cls, *args, **kwds)
+        obj = object.__new__(cls)
+        obj.__init__(*args, **kwds)
+        return obj
 
     def __init__(self, type_, aliases=[], export_name=None, *args, **kwds):
         self._column_index = self._column_index_auto_increment
         self.type_ = type_
         self.aliases = aliases
         self.export_name = export_name
-
-    def __cmp__(self, other):
-        return cmp(self._column_index, other._column_index)
 
     def create(self):
         return Value(self)
@@ -137,11 +140,16 @@ class Column(object):
         if self.type_ == Unicode:
             self.type_ = Unicode(encoding)
 
+
 class ModelAdapter(list):
     def __init__(self, model):
         self._model = model
         self._columns = None
         self._name_column = None
+
+    @property
+    def encoding(self):
+        return self._model._encoding_
 
     def get_columns(self):
         return [column for name, column in self.get_name_column_pairs()]
@@ -158,7 +166,7 @@ class ModelAdapter(list):
             name_column = [[name, getattr(model, name)]
                            for name in dir(model)
                            if type(getattr(model, name)) is Column]
-            name_column.sort(key=lambda (name, column): column)
+            name_column.sort(key=lambda name_column: id(name_column[1]))
 
             encoding = self._model._encoding_
             for name, column in name_column:
@@ -183,42 +191,52 @@ class ModelAdapter(list):
         fp.write(self.dumps())
 
     def dumps(self):
-        fp = stringio.StringIO()
+        fp = io.StringIO()
         encoding = self._model._encoding_
-        header = map(lambda head: head.encode(encoding), self.get_header())
-        writer = csv.DictWriter(fp, header)
+        # header = map(lambda head: head.encode(encoding), self.get_header())
+        kwds = {} if six.PY3 else {'encoding': self.encoding}
+        header = self.get_header()
+        writer = csv.DictWriter(fp, header, **kwds)
         writer.writeheader()
+
         for record in self:
-            row = record._dump(encode=True)
-            row = dict((key.encode(encoding), value) for key, value in row.items())
+            row = record._dump()
+            row = dict((key, value) for key, value in row.items())
             writer.writerow(row)
         fp.seek(0)
-        return fp.read()
+        buf = fp.read()
+        buf = buf.encode(self.encoding) if six.PY3 else buf
+        return buf
 
     def load(self, path):
         with open(path, 'rb') as fp:
             self.loadfp(fp)
 
     def loadfp(self, fp):
-        self.loads(fp.read())
+        buf = fp.read()
+        self.loads(buf)
 
     def loads(self, msg):
-        fp = stringio.StringIO(msg)
+        if six.PY3:
+            msg = msg.decode(self.encoding)
+        fp = io.StringIO(msg)
         fp.seek(0)
-        reader = csv.DictReader(fp)
+        kwds = {} if six.PY3 else {'encoding': self.encoding}
+        reader = csv.DictReader(fp, **kwds)
         records = []
-        encoding = self._model._encoding_
         for row in reader:
-            row = dict((key.decode(encoding), value) for key, value in row.items())
+            row = dict((key, value) for key, value in row.items())
             record = self.get_record()
-            record._load(row, decode=True)
+            record._load(row)
             records.append(record)
         self.extend(records)
+
 
 class Model(object):
     def __new__(cls, *args, **kwds):
         self = super(Model, cls).__new__(cls, *args, **kwds)
         return ModelAdapter(self)
+
 
 class Type_(object):
     @staticmethod
@@ -229,6 +247,7 @@ class Type_(object):
     def decode(value):
         return value
 
+
 class Integer(Type_):
     @staticmethod
     def encode(value):
@@ -238,15 +257,17 @@ class Integer(Type_):
     def decode(value):
         return int(value)
 
+
 class Unicode(Type_):
     def __init__(self, encoding):
         self._encoding = encoding
 
     def encode(self, value):
-        return value.encode(self._encoding)
+        return value
 
     def decode(self, value):
-        return value.decode(self._encoding)
+        return value
+
 
 class DateTime(Type_):
     _fmt = '%Y-%m-%d-%H-%M-%S'
