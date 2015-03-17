@@ -17,6 +17,7 @@ def find_package_data(target, package_root):
 src = 'src'
 requires = [
     'six',
+    'unicodecsv',
     ]
 install_requires = []
 test_require = []
