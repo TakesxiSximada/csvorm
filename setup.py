@@ -19,7 +19,7 @@ requires = [
     'six',
     'unicodecsv',
     ]
-install_requires = []
+install_requires = requires
 test_require = []
 packages = find_packages(src)
 package_dir = {'': src}
