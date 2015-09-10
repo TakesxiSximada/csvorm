@@ -3,6 +3,9 @@ csvorm - ORM for CSV
 
 This allows to use the CSV as ORM.
 
+.. image:: https://circleci.com/gh/TakesxiSximada/csvorm.svg?style=svg
+               :target: https://circleci.com/gh/TakesxiSximada/csvorm
+
 INSTALL
 -----------------
 
