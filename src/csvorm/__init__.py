@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
-
 import datetime
 import collections
 import six
-if six.PY3:
-    import io
-    import csv
-else:
-    import StringIO as io
-    import unicodecsv as csv
-
-on_memory_io_factory = io.BytesIO if six.PY3 else io.StringIO
+from .compat import (
+    csv,
+    StringIO,
+    )
 
 
 class Record(object):
@@ -191,7 +186,7 @@ class ModelAdapter(list):
         fp.write(self.dumps())
 
     def dumps(self):
-        fp = io.StringIO()
+        fp = StringIO()
         encoding = self._model._encoding_
         # header = map(lambda head: head.encode(encoding), self.get_header())
         kwds = {} if six.PY3 else {'encoding': self.encoding}
@@ -219,7 +214,7 @@ class ModelAdapter(list):
     def loads(self, msg):
         if six.PY3:
             msg = msg.decode(self.encoding)
-        fp = io.StringIO(msg)
+        fp = StringIO(msg)
         fp.seek(0)
         kwds = {} if six.PY3 else {'encoding': self.encoding}
         reader = csv.DictReader(fp, **kwds)
