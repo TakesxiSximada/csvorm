@@ -7,35 +7,40 @@ from setuptools import (
     )
 
 
-def find_package_data(target, package_root):
-    return [
-        os.path.relpath(os.path.join(root, filename), package_root)
-        for root, dirs, files in os.walk(target)
-        for filename in files
-        ]
-
 src = 'src'
-requires = [
-    'six',
-    'unicodecsv',
-    ]
-install_requires = requires
-test_require = []
-packages = find_packages(src)
-package_dir = {'': src}
-package_data = {}
+here = lambda path: os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+get_requires = lambda path: open(here(path), 'rt').readlines()
 
-long_description = 'This allows to use the CSV as ORM'
-try:
-    with open('README') as fp:
-        long_description = fp.read()
-except:
-    pass
+readme_path = here('README.rst')
+contributors_path = here('CONTRIBUTORS.rst')
+
+requirements_txt = 'requirements/install.txt'
+requires = get_requires(requirements_txt)
+install_requires = requires
+test_requirements = get_requires('requirements/test.txt')
+
+
+long_description = open(readme_path, 'rt').read() + '\n\n' + open(contributors_path, 'rt').read()
+
+
+def find_version():
+    for root, dirs, files in os.walk(here(src)):
+        for filename in files:
+            if filename == 'version.txt':
+                version_file = os.path.join(root, filename)
+                with open(version_file, 'rt') as fp:
+                    for line in fp:
+                        line = line.strip()
+                        if line:
+                            return line
+    raise ValueError('unkown version')
+
+version = find_version()
 
 
 setup(
     name='csvorm',
-    version='0.1.4',
+    version=version,
     url='https://github.com/TakesxiSximada/csvorm',
     download_url='https://github.com/TakesxiSximada/csvorm',
     license='See http://www.python.org/3.4/license.html',
@@ -46,7 +51,7 @@ setup(
     keywords='csv',
     zip_safe=False,
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
         'Intended Audience :: System Administrators',
@@ -54,17 +59,20 @@ setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         ],
     platforms='any',
-    packages=packages,
-    package_dir=package_dir,
-    package_data=package_data,
+    packages=find_packages(src),
+    package_dir={'': src},
+    namespace_packages=[
+        ],
+    package_data={},
     include_package_data=True,
-    requires=requires,
-    install_requires=install_requires,
-    test_require=test_require,
+    install_requires=install_requires + test_requirements,
+    tests_requires=test_requirements,
     entry_points='''
     [console_scripts]
     '''

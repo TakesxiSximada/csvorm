@@ -1,5 +1,6 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from unittest import TestCase
+
 
 class UsecaseTest(TestCase):
     def test_it(self):
@@ -16,13 +17,13 @@ class UsecaseTest(TestCase):
         record = test_csv.create()
         record.id_ = 5
         record.name = u'テスト'
-        record.modified_at = now = datetime.datetime.now()
+        record.modified_at = now = datetime.datetime.now()  # noqa
 
         import six
         if six.PY3:
             import io
         else:
-            import StringIO as io
+            import StringIO as io  # noqa
         fp = on_memory_io_factory()
         test_csv.dumpfp(fp)
         fp.seek(0)
@@ -31,7 +32,7 @@ class UsecaseTest(TestCase):
 
         other_csv = TestCSV()
         other_csv.loadfp(fp)
-        records = [record for record in other_csv]
+        records = [record for record in other_csv]  # noqa
         self.assertEqual(len(records), 1)
         record = records[0]
         self.assertEqual(record.id_, 5)
