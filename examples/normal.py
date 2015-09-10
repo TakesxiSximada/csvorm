@@ -39,7 +39,7 @@ def parse():
     test_csv.load('test.csv')
 
     for record in test_csv:
-        print record.id_, record.name, record.modified_at
+        print(record.id_, record.name, record.modified_at)
 
 
 def main():

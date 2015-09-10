@@ -4,8 +4,9 @@ from unittest import TestCase
 
 class UsecaseTest(TestCase):
     def test_it(self):
+        import io
         import datetime
-        from csvorm import Model, Column, Integer, Unicode, DateTime, on_memory_io_factory
+        from csvorm import Model, Column, Integer, Unicode, DateTime
 
         class TestCSV(Model):
             _encoding_ = 'cp932'
@@ -19,12 +20,7 @@ class UsecaseTest(TestCase):
         record.name = u'テスト'
         record.modified_at = now = datetime.datetime.now()  # noqa
 
-        import six
-        if six.PY3:
-            import io
-        else:
-            import StringIO as io  # noqa
-        fp = on_memory_io_factory()
+        fp = io.BytesIO()
         test_csv.dumpfp(fp)
         fp.seek(0)
         print(fp.read())
