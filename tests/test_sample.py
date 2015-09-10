@@ -1,6 +1,7 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import os
 from unittest import TestCase
+
 
 class SampleCSVTest(TestCase):
     def test_it(self):

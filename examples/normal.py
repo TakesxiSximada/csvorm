@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import argparse
 import datetime
 from csvorm import (
@@ -33,12 +33,14 @@ def create():
 
     test_csv.dump('test.csv')
 
+
 def parse():
     test_csv = TestCSV()
     test_csv.load('test.csv')
 
     for record in test_csv:
         print record.id_, record.name, record.modified_at
+
 
 def main():
     parser = argparse.ArgumentParser()
