@@ -1,3 +1,2 @@
-include requirements/install.txt
-include requirements/test.txt
-include requirements/doc.txt
+include *.rst
+include requirements/*.txt
