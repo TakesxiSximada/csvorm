@@ -58,3 +58,11 @@ export data::
     id_,name,modified_at
     1,first,2014-03-26-15-05-50
     2,second,2014-03-26-15-05-50
+
+
+CONTRIBUTORS
+------------
+
+Thanks for contributors.
+
+`<https://github.com/TakesxiSximada/csvorm/graphs/contributors>`_
