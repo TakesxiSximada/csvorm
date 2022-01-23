@@ -64,7 +64,7 @@ export data::
 CONTRIBUTORS
 ------------
 
-Thanks for `contributors <https://github.com/TakesxiSximada/csvorm/graphs/contributors>`_.
+Thank you for `contributors <https://github.com/TakesxiSximada/csvorm/graphs/contributors>`_.
 
 
 
