@@ -3,8 +3,7 @@ csvorm - ORM for CSV
 
 This allows to use the CSV as ORM.
 
-.. image:: https://circleci.com/gh/TakesxiSximada/csvorm.svg?style=svg
-               :target: https://circleci.com/gh/TakesxiSximada/csvorm
+.. image:: https://github.com/TakesxiSximada/csvorm/actions/workflows/test.yml/badge.svg
 
 INSTALL
 -----------------
