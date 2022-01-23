@@ -12,7 +12,6 @@ here = lambda path: os.path.join(os.path.dirname(os.path.abspath(__file__)), pat
 get_requires = lambda path: open(here(path), 'rt').readlines()
 
 readme_path = here('README.rst')
-contributors_path = here('CONTRIBUTORS.rst')
 
 requirements_txt = 'requirements/install.txt'
 requires = get_requires(requirements_txt)
@@ -20,7 +19,7 @@ install_requires = requires
 test_requirements = get_requires('requirements/test.txt')
 
 
-long_description = open(readme_path, 'rt').read() + '\n\n' + open(contributors_path, 'rt').read()
+long_description = open(readme_path, 'rt').read()
 
 
 def find_version():
