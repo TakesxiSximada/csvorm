@@ -4,6 +4,7 @@ csvorm - ORM for CSV
 This allows to use the CSV as ORM.
 
 .. image:: https://github.com/TakesxiSximada/csvorm/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/TakesxiSximada/csvorm/actions/workflows/test.yml
 
 INSTALL
 -----------------
@@ -63,6 +64,7 @@ export data::
 CONTRIBUTORS
 ------------
 
-Thanks for contributors.
+Thanks for `contributors <https://github.com/TakesxiSximada/csvorm/graphs/contributors>`_.
 
-`<https://github.com/TakesxiSximada/csvorm/graphs/contributors>`_
+
+
