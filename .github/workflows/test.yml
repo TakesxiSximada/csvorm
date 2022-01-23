@@ -1,0 +1,29 @@
+name: Test
+
+on: [push]
+
+
+env:
+  cache-version: v1
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.5
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.5
+
+      - name: Install tox
+        run: |
+          pip install tox
+
+      - name: test
+        run: |
+          tox
